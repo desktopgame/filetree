@@ -3,6 +3,7 @@ package filetree
 import (
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 )
 
 // Node is element of file tree
@@ -66,4 +67,22 @@ func Collect(dir string, filter Filter) (*Node, error) {
 		}
 	}
 	return node, nil
+}
+
+// ExtensionFilter is returns new filter by file extension.
+func ExtensionFilter(extensions []string) Filter {
+	return func(node *Node) bool {
+		if node.IsDir {
+			return true
+		}
+		for _, ext := range extensions {
+			if ext[0] != '.' {
+				ext = "." + ext
+			}
+			if strings.HasSuffix(node.Name, ext) {
+				return true
+			}
+		}
+		return false
+	}
 }

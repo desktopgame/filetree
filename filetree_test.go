@@ -16,3 +16,15 @@ func TestWalk(t *testing.T) {
 		fmt.Println(node.Name)
 	})
 }
+
+func TestWalk2(t *testing.T) {
+	node, _ := Collect("testdata\\c", ExtensionFilter([]string{"txt"}))
+	node.Visit(func(node *Node, depth int) {
+		for i := 0; i < depth; i++ {
+			for j := 0; j < 2; j++ {
+				fmt.Print(" ")
+			}
+		}
+		fmt.Println(node.Name)
+	})
+}
