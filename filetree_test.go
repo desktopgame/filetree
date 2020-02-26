@@ -6,7 +6,7 @@ import (
 )
 
 func TestWalk(t *testing.T) {
-	node, _ := Collect("testdata")
+	node, _ := Collect("testdata", nil)
 	node.Visit(func(node *Node, depth int) {
 		for i := 0; i < depth; i++ {
 			for j := 0; j < 2; j++ {

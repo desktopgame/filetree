@@ -16,6 +16,9 @@ type Node struct {
 // Visitor is callback function for node recursive.
 type Visitor func(node *Node, depth int)
 
+// Filter is file filter.
+type Filter func(node *Node) bool
+
 // Visit is visit all element for recursive in node
 func (node *Node) Visit(v Visitor) {
 	node._visit(v, 0)
@@ -29,7 +32,7 @@ func (node *Node) _visit(v Visitor, depth int) {
 }
 
 // Collect is create file tree node.
-func Collect(dir string) (*Node, error) {
+func Collect(dir string, filter Filter) (*Node, error) {
 	node := &Node{
 		Path:     dir,
 		Name:     dir,
@@ -43,18 +46,23 @@ func Collect(dir string) (*Node, error) {
 	for _, file := range files {
 		filename := file.Name()
 		if file.IsDir() {
-			child, err := Collect(filepath.Join(dir, filename))
+			child, err := Collect(filepath.Join(dir, filename), filter)
 			if err != nil {
 				return nil, err
 			}
-			node.Children = append(node.Children, child)
+			if filter == nil || filter(child) {
+				node.Children = append(node.Children, child)
+			}
 		} else {
-			node.Children = append(node.Children, &Node{
+			child := &Node{
 				Path:     filepath.Join(dir, filename),
 				Name:     filename,
 				IsDir:    file.IsDir(),
 				Children: nil,
-			})
+			}
+			if filter == nil || filter(child) {
+				node.Children = append(node.Children, child)
+			}
 		}
 	}
 	return node, nil
