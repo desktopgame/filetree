@@ -3,9 +3,7 @@ filetree is can search file by recursive.
 
 # install
 ````
-git clone https://github.com/desktopgame/filetree
-cd filetree
-go install
+go get github.com/desktopgame/filetree
 ````
 
 # example

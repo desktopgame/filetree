@@ -3,9 +3,7 @@ filetree は再帰的にファイルを検索できます。
 
 # install
 ````
-git clone https://github.com/desktopgame/filetree
-cd filetree
-go install
+go get github.com/desktopgame/filetree
 ````
 
 # example
