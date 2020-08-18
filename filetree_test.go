@@ -28,3 +28,10 @@ func TestWalk2(t *testing.T) {
 		fmt.Println(node.Name)
 	})
 }
+
+func TestFlatten(t *testing.T) {
+	node, _ := Collect("testdata", nil)
+	for _, v := range node.Flatten() {
+		fmt.Println(v.Path)
+	}
+}

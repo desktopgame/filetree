@@ -25,11 +25,24 @@ func (node *Node) Visit(v Visitor) {
 	node._visit(v, 0)
 }
 
+// Flatten is node tree convert to array
+func (node *Node) Flatten() []*Node {
+	return node._flatten(nil)
+}
+
 func (node *Node) _visit(v Visitor, depth int) {
 	v(node, depth)
 	for _, child := range node.Children {
 		child._visit(v, depth+1)
 	}
+}
+
+func (node *Node) _flatten(out []*Node) []*Node {
+	out = append(out, node)
+	for _, v := range node.Children {
+		out = v._flatten(out)
+	}
+	return out
 }
 
 // Collect is create file tree node.
