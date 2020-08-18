@@ -45,8 +45,8 @@ func (node *Node) _flatten(out []*Node) []*Node {
 	return out
 }
 
-// Collect is create file tree node.
-func Collect(dir string, filter Filter) (*Node, error) {
+// CollectLimited is create file tree node.
+func CollectLimited(dir string, filter Filter, limit int) (*Node, error) {
 	node := &Node{
 		Path:     dir,
 		Name:     dir,
@@ -58,9 +58,12 @@ func Collect(dir string, filter Filter) (*Node, error) {
 		return nil, err
 	}
 	for _, file := range files {
+		if limit == 0 {
+			break
+		}
 		filename := file.Name()
 		if file.IsDir() {
-			child, err := Collect(filepath.Join(dir, filename), filter)
+			child, err := CollectLimited(filepath.Join(dir, filename), filter, limit-1)
 			if err != nil {
 				return nil, err
 			}
@@ -80,6 +83,11 @@ func Collect(dir string, filter Filter) (*Node, error) {
 		}
 	}
 	return node, nil
+}
+
+// Collect is create file tree node.
+func Collect(dir string, filter Filter) (*Node, error) {
+	return CollectLimited(dir, filter, -1)
 }
 
 // ExtensionFilter is returns new filter by file extension.
