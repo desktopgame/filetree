@@ -23,6 +23,13 @@ type Visitor func(node *Node, depth int)
 // Filter is file filter.
 type Filter func(node *Node) bool
 
+// GitIgnoreFileName is ".gitignore"
+var GitIgnoreFileName string
+
+func init() {
+	GitIgnoreFileName = ".gitignore"
+}
+
 // Visit is visit all element for recursive in node
 func (node *Node) Visit(v Visitor) {
 	node._visit(v, 0)
@@ -57,7 +64,7 @@ func findGitIgnore(root *Node) (string, error) {
 		return "nil", err
 	}
 	for _, file := range files {
-		if file.Name() == ".gitignore" {
+		if file.Name() == GitIgnoreFileName {
 			return filepath.Join(root.Path, file.Name()), nil
 		}
 	}
@@ -79,11 +86,16 @@ func _applyGitIgnore(root *Node, ignoreTree []*ignore.GitIgnore) *Node {
 		Children: nil,
 	}
 	for _, child := range root.Children {
+		nextChild := false
 		for i := len(ignoreTree) - 1; i >= 0; i-- {
 			ignoreEntry := ignoreTree[i]
 			if ignoreEntry.MatchesPath(child.Path) {
-				continue
+				nextChild = true
+				break
 			}
+		}
+		if nextChild {
+			continue
 		}
 		if child.IsDir {
 			dup := make([]*ignore.GitIgnore, len(ignoreTree))
@@ -102,8 +114,8 @@ func _applyGitIgnore(root *Node, ignoreTree []*ignore.GitIgnore) *Node {
 }
 
 // ApplyGitIgnore is returns new Node by filtered by gitignore.
-func ApplyGitIgnore(root *Node) *Node {
-	return _applyGitIgnore(root, nil)
+func (node *Node) ApplyGitIgnore() *Node {
+	return _applyGitIgnore(node, nil)
 }
 
 // CollectLimited is create file tree node.
