@@ -63,6 +63,21 @@ func TestWalk5(t *testing.T) {
 		fmt.Println(node.Name)
 	})
 }
+func TestWalk6(t *testing.T) {
+	saveGitIgnoreFileName := GitIgnoreFileName
+	GitIgnoreFileName = "gitignore"
+	node, _ := Collect("testdata", nil)
+	node = node.ApplyGitIgnore()
+	node.Visit(func(node *Node, depth int) {
+		for i := 0; i < depth; i++ {
+			for j := 0; j < 2; j++ {
+				fmt.Print(" ")
+			}
+		}
+		fmt.Println(node.Name)
+	})
+	GitIgnoreFileName = saveGitIgnoreFileName
+}
 func TestFlatten(t *testing.T) {
 	node, _ := Collect("testdata", nil)
 	for _, v := range node.Flatten() {
