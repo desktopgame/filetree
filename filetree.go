@@ -1,9 +1,12 @@
 package filetree
 
 import (
+	"errors"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+
+	ignore "github.com/sabhiram/go-gitignore"
 )
 
 // Node is element of file tree
@@ -43,6 +46,64 @@ func (node *Node) _flatten(out []*Node) []*Node {
 		out = v._flatten(out)
 	}
 	return out
+}
+
+func findGitIgnore(root *Node) (string, error) {
+	if !root.IsDir {
+		return "", errors.New("node is file")
+	}
+	files, err := ioutil.ReadDir(root.Path)
+	if err != nil {
+		return "nil", err
+	}
+	for _, file := range files {
+		if file.Name() == ".gitignore" {
+			return filepath.Join(root.Path, file.Name()), nil
+		}
+	}
+	return "", errors.New(".gitignore is not found")
+}
+
+func _applyGitIgnore(root *Node, ignoreTree []*ignore.GitIgnore) *Node {
+	ignoreFile, err := findGitIgnore(root)
+	if err == nil {
+		gitignore, err := ignore.CompileIgnoreFile(ignoreFile)
+		if err == nil {
+			ignoreTree = append(ignoreTree, gitignore)
+		}
+	}
+	ret := &Node{
+		Path:     root.Path,
+		Name:     root.Name,
+		IsDir:    true,
+		Children: nil,
+	}
+	for _, child := range root.Children {
+		for i := len(ignoreTree) - 1; i >= 0; i-- {
+			ignoreEntry := ignoreTree[i]
+			if ignoreEntry.MatchesPath(child.Path) {
+				continue
+			}
+		}
+		if child.IsDir {
+			dup := make([]*ignore.GitIgnore, len(ignoreTree))
+			copy(dup, ignoreTree)
+			ret.Children = append(ret.Children, _applyGitIgnore(child, dup))
+		} else {
+			ret.Children = append(ret.Children, &Node{
+				Path:     child.Path,
+				Name:     child.Name,
+				IsDir:    child.IsDir,
+				Children: nil,
+			})
+		}
+	}
+	return ret
+}
+
+// ApplyGitIgnore is returns new Node by filtered by gitignore.
+func ApplyGitIgnore(root *Node) *Node {
+	return _applyGitIgnore(root, nil)
 }
 
 // CollectLimited is create file tree node.
